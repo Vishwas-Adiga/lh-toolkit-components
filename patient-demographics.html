@@ -1,0 +1,199 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link rel="import" href="bower_components/polymer/polymer-element.html">
+<link rel="import" href="https://polygit.org/polymer+v2.0.0/shadycss+webcomponents+1.0.0/components/iron-ajax/iron-ajax.html">
+
+<dom-module id="patient-demographics">
+
+  <template>
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+      <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css?family=Raleway:400,500,700,900" rel="stylesheet">
+      <script src="https://use.fontawesome.com/6ce1697ef4.js"></script>
+      <style>
+          /*CSS for component */
+          :host .demographics {
+              height: 500px;
+              width: 500px;
+              background-color: #EEE;
+              border-radius: 2px;
+              overflow-y: scroll;
+              overflow-x: hidden;
+          }
+              
+          :host .demographics h1 {
+              font-size: 20px;
+              color: #F59130;
+              margin-top: -10px;
+          }   
+            
+          :host .demographics p {
+              color: #666;
+              font-size: 12px;
+          }   
+            
+          :host #id {
+              background-color: #DDD;
+              border-top-left-radius: 2px;
+              border-top-right-radius: 2px;
+              margin-left: 20px;
+          }
+            
+          :host .demographics::-webkit-scrollbar-track {
+              border-radius: 10px;
+              background-color: #F5F5F5;
+          }   
+
+          :host .demographics::-webkit-scrollbar {
+              width: 4px;
+              background-color: #F5F5F5;
+          }   
+
+          :host .demographics::-webkit-scrollbar-thumb {
+              background-color: #AAA;
+          }   
+      </style>
+      <!-- Component Structure -->
+      <div class="demographics" id="main">
+          <div class="row">
+              <div class="col s4">
+                  <p>Name</p>
+                  <h1>{{patientDetails.name}}</h1>
+              </div>
+                 
+              <div class="col s4">
+                  <p>Age</p>
+                  <h1>{{patientDetails.age}}</h1>
+              </div>
+                    
+              <div class="col s4">
+                    <p>Gender</p>
+                    <h1>{{patientDetails.gender}}</h1>
+                </div>
+            </div>
+            
+            <div class="row" id="id">
+                <div class="col s6">
+                    <p>OpenMRS ID</p>
+                    <h1>{{patientDetails.mrsID}}</h1>
+                </div>
+                
+                <div class="col s6">
+                    <p>Old ID</p>
+                    <h1>{{patientDetails.oldID}}</h1>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col s4">
+                    <p>Date of Birth</p>
+                    <h1>{{patientDetails.dob}}</h1>
+                </div>
+                
+                <div class="col s4">
+                    <p>Date of Death</p>
+                    <h1>{{patientDetails.dod}}</h1>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col s6">
+                    <p>Address</p>
+                    <h1>{{patientDetails.address}}</h1>
+                </div>
+            </div>
+        </div>
+
+      <iron-ajax
+                 url="{{url}}"
+                 params='{"v":"full"}'
+                 content-type="application/json"
+                 on-response="gotResponse()"
+                 method="GET"
+                 on-error="onErrorOccurred()"
+                 id="getter"
+                 with-credentials="true"
+                 handle-as="json">
+      </iron-ajax>
+
+
+  </template>
+
+  <script>
+    class PatientDemographics extends Polymer.Element {
+      static get is() {
+          return 'patient-demographics';
+      }
+    
+      static get properties() {
+        return {
+            uuid: {
+                type: String,
+                observer: "onUUIDChange"
+            },
+            url: {
+                type: String
+            },
+            patientDetails: {
+                type: Object
+            },
+            width: {
+                type: Number,
+                observer: "onDimensionsChange"
+            },
+            height: {
+                type: Number,
+                observer: "onDimensionsChange"
+            }
+        }
+      }
+      constructor() {
+        super();
+      }
+        
+        //checks for change in uuid attribute
+        onUUIDChange(){
+            this.url = "http://localhost:8080/lh-toolkit/ws/rest/v1/patient/" + this.uuid;
+            this.$.getter.generateRequest(
+            
+        }
+
+        //fired when iron ajax got data
+        gotResponse(data){
+          
+            var response = data.detail.response;
+            var patientName = response.person.display;
+            var patientGender = (response.person.gender =="M"? "Male" : "Female");
+            var patientAge = response.person.age;
+            var patientBirthDate = (response.person.birthdate).substr(0,10);
+            if(response.person.dead) {
+                var patientDeathDate = (response.person.deathdate).substr(0,10);
+            } else {
+                var patientDeathDate = "-";
+            }
+            var patientOpenMRSId = (response.identifiers[0].display).substr(32, 36);
+            var patientOldId = (response.identifiers[1].display).substr(28,30);
+            var patientAddress = response.person.preferredAddress.display;
+            
+            this.patientDetails = JSON.parse('{"name":"' + patientName + '", "gender":"' + patientGender + '", "age":"' + patientAge + '", "dob":"' + patientBirthDate + '","dod":"' + patientDeathDate + '", "mrsID" : "' + patientOpenMRSId + '", "oldID": "' + patientOldId + '", "address" : "' + patientAddress + '"}');  
+        }
+        
+        //fired if iron ajax throws error
+        onErrorOccurred(event){
+            console.log("An error occurred!");
+            console.log(event.detail.error);
+        }
+        
+        //fired when height and width attributes are changed
+        onDimensionsChange() {
+            this.$.main.style.width = this.width + "px";
+            this.$.main.style.height = this.height + "px";
+        }
+      
+    }
+      
+    customElements.define(PatientDemographics.is, PatientDemographics);
+  </script>
+
+</dom-module>
