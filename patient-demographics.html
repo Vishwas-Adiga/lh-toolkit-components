@@ -109,9 +109,9 @@
                  url="{{url}}"
                  params='{"v":"full"}'
                  content-type="application/json"
-                 on-response="gotResponse()"
+                 on-response="gotResponse"
                  method="GET"
-                 on-error="onErrorOccurred()"
+                 on-error="onErrorOccurred"
                  id="getter"
                  with-credentials="true"
                  handle-as="json">
