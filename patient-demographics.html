@@ -53,6 +53,7 @@
           :host .demographics::-webkit-scrollbar-thumb {
               background-color: #AAA;
           }   
+          
       </style>
       <!-- Component Structure -->
       <div class="demographics" id="main">
@@ -104,7 +105,6 @@
                 </div>
             </div>
         </div>
-
       <iron-ajax
                  url="{{url}}"
                  params='{"v":"full"}'
@@ -172,9 +172,20 @@
             } else {
                 var patientDeathDate = "-";
             }
-            var patientOpenMRSId = (response.identifiers[0].display).substr(32, 36);
-            var patientOldId = (response.identifiers[1].display).substr(28,30);
-            var patientAddress = response.person.preferredAddress.display;
+            if((response.identifiers).length == 1){
+                var patientOldId = (response.identifiers[0].display).substr(28,30);
+                var patientOpenMRSId = "-";
+            } else {
+                var patientOpenMRSId = (response.identifiers[0].display).substr(32, 36);
+                var patientOldId = (response.identifiers[1].display).substr(28,30);
+            }
+            
+            if(response.person.preferredAddress != null) {
+                    var patientAddress = response.person.preferredAddress.display;
+            } else {
+                var patientAddress = "-";
+            }
+            
             
             this.patientDetails = JSON.parse('{"name":"' + patientName + '", "gender":"' + patientGender + '", "age":"' + patientAge + '", "dob":"' + patientBirthDate + '","dod":"' + patientDeathDate + '", "mrsID" : "' + patientOpenMRSId + '", "oldID": "' + patientOldId + '", "address" : "' + patientAddress + '"}');  
         }
@@ -182,7 +193,7 @@
         //fired if iron ajax throws error
         onErrorOccurred(event){
             console.log("An error occurred!");
-            console.log(event.detail.error);
+            
         }
         
         //fired when height and width attributes are changed
@@ -195,5 +206,6 @@
       
     customElements.define(PatientDemographics.is, PatientDemographics);
   </script>
+  
 
 </dom-module>
