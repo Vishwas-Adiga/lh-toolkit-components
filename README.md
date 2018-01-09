@@ -33,4 +33,13 @@ Component list
  (you will need Python installed for this)
  
  View the output at _localhost:8080_
+ 
+ If you are using Python 3, use the following command:
+ ```python3 -m http.server```
+ 
+ Navigate to 0.0.0.0:8080 to view the output.
+ 
+ As an alternative, run 
+ ```polymer serve``` 
+ to run a local instance of the code.
        
